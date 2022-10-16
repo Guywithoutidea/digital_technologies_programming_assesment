@@ -79,16 +79,16 @@ def get_quote():
         # If that suceeds, check if the float is greater than zero.
         if area_float <= 0:
             inputs_invalid = True # Set inputs invalid to true
-            # Tell the user their mistake
+            # Tell the user their mistake.
             lbl_area.config(fg="red",
                 text="""Enter the area you wish to plant in m^2.
-                    \nYou cannot plant 0 or less m^2 of trees.""")
+ You cannot plant 0 or less m^2 of trees.""")
     # If the area cannot be converted into a float (throws one of the below errors)
     except (TypeError, ValueError):
         inputs_invalid = True # Set inputs invalid to true
         # Tell the user their mistake
         lbl_area.config(fg="red", text="""Enter the area you wish to plant in m^2.
-            \nPlease enter a valid number, like 2, or 0.6.""")
+ Please enter a valid number, like 2, or 0.6.""")
 
     # Density validation code. If it all checks out, density_float is a valid float.
     # First, we reset the lbl_area to it's normal value.
@@ -102,13 +102,13 @@ def get_quote():
             # Tell the user their mistake
             lbl_density.config(fg="red",
                 text="""Enter the density of plants you want per m^2.
-                    \nYou cannot plant 0 or less trees per m^2.""")
+ You cannot plant 0 or less trees per m^2.""")
     # If the area cannot be converted into a float (throws one of the below errors)
     except (TypeError, ValueError):
         inputs_invalid = True # Set inputs invalid to true
         # Tell the user their mistake
         lbl_density.config(fg="red", text="""Enter the density of plants you want per m^2.
-            \nPlease enter a valid number, like 2, or 0.6.""")
+ Please enter a valid number, like 2, or 0.6.""")
 
     # Address validation code.
     # First, we reset the lbl_address to it's normal value.
@@ -227,7 +227,7 @@ lbl_title.grid(row=1, column=1)
 # The blurb below the title
 lbl_blurb = tk.Label(master=frm_mainframe,
     text="""Welcome to Kakano Nursery Wanaka's quote calculation program.
-        \nTo recieve your quote, please fill out the following fields.""",
+ To recieve your quote, please fill out the following fields.""",
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
@@ -283,6 +283,7 @@ lbl_area = tk.Label(master=frm_fields,
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
+    wraplengt=450,
     height=2)
 lbl_area.grid(sticky="sw")
 
@@ -298,6 +299,7 @@ lbl_density = tk.Label(master=frm_fields,
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
+    wraplengt=450,
     height=2)
 lbl_density.grid(sticky="sw")
 
@@ -313,6 +315,7 @@ lbl_address = tk.Label(master=frm_fields,
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
+    wraplengt=450,
     height=2)
 lbl_address.grid(sticky="sw")
 
