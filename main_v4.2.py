@@ -39,9 +39,13 @@ plants_in_stock = [
     "mikimiki", "kowhai", "cabbage tree", "mountain beech"]
 
 # Maximum number of plants we will sell to the user
-MAX_PLANTS = 3000
+MAX_PLANTS = 10000
+# Maximum area we can cater to
+MAX_AREA = 500000
+# Minimum planting distance between plants
+MIN_DISTANCE = 1
 
-# Initialise user_plants
+# Initialise user_plants list
 user_plants = []
 
 def plant_species_handler(plant_species, value):
@@ -57,17 +61,17 @@ def plant_species_handler(plant_species, value):
 
 def get_quote():
     '''
-    Command called when user presses the calculate button
+    Command called when user presses the calculate button. Most of it is taking care of
+    input validation, the last if - else statement calls calculate_quote() if all the inputs
+    pass the validation logic.
     '''
     # Get our user's values from the entry boxes
     area_string = ent_area.get()
-    density_string = ent_density.get()
+    distance_string = ent_distance.get()
     address = ent_address.get()
 
-    # Intialise our two floating point values for area and density
-
     area_float = 0
-    density_float = 0
+    distance_float = 0
     inputs_invalid = False # Keeps track of whether there are any invalid inputs
 
     # Area validation code. If it all checks out, area_float is valid and a float.
@@ -83,32 +87,38 @@ def get_quote():
             lbl_area.config(fg="red",
                 text="""Enter the area you wish to plant in m^2.
  You cannot plant 0 or less m^2 of trees.""")
+        if area_float > MAX_AREA:
+            inputs_invalid = True # Set inputs invalid to true
+            # Tell the user their mistake.
+            lbl_area.config(fg="red",
+                text=f"""Enter the area you wish to plant in m^2.
+ We cannot plant more than {MAX_AREA}m^2.""")
     # If the area cannot be converted into a float (throws one of the below errors)
     except (TypeError, ValueError):
         inputs_invalid = True # Set inputs invalid to true
         # Tell the user their mistake
         lbl_area.config(fg="red", text="""Enter the area you wish to plant in m^2.
- Please enter a valid number, like 2, or 0.6.""")
+ Please enter a valid number, like 1200, or 30.""")
 
-    # Density validation code. If it all checks out, density_float is a valid float.
-    # First, we reset the lbl_area to it's normal value.
-    lbl_density.config(fg="white", text="Enter the density of plants you want per m^2.")
+    # Planting distance validation code. If it all checks out, distance_float is a valid float.
+    # First, we reset the lbl_distance to it's normal value.
+    lbl_distance.config(fg="white", text="Enter the distance you will leave between plants in m^2")
     try:
         # Try to convert it to a floating point number
-        density_float = float(density_string)
-        # If that suceeds, check if the float is greater than zero.
-        if density_float <= 0:
+        distance_float = float(distance_string)
+        # If that suceeds, check if the float is less than the minimum distance.
+        if distance_float < MIN_DISTANCE:
             inputs_invalid = True # Set inputs invalid to true
             # Tell the user their mistake
-            lbl_density.config(fg="red",
-                text="""Enter the density of plants you want per m^2.
- You cannot plant 0 or less trees per m^2.""")
+            lbl_distance.config(fg="red",
+                text=f"""Enter the distance you will leave between plants in m^2
+ Must have at least {MIN_DISTANCE}m between plants.""")
     # If the area cannot be converted into a float (throws one of the below errors)
     except (TypeError, ValueError):
         inputs_invalid = True # Set inputs invalid to true
         # Tell the user their mistake
-        lbl_density.config(fg="red", text="""Enter the density of plants you want per m^2.
- Please enter a valid number, like 2, or 0.6.""")
+        lbl_distance.config(fg="red", text="""Enter the distance you will leave between plants in m^2
+ Please enter a valid number, like 5, or 2""")
 
     # Address validation code.
     # First, we reset the lbl_address to it's normal value.
@@ -130,25 +140,30 @@ def get_quote():
 
     # Calculate the number of plants the user is buying.
     # You cannot buy half a plant, so convert the float to int
-    number_of_plants = int(area_float * density_float)
-    # If the user is trying to buy more plants than this:
+    # Nonfatal division by zero error may occur if user enters an invalid input.
+    number_of_plants = int(area_float / distance_float)
+    # Reset he number of plants label
+    lbl_number_of_plants.config(fg = "white",
+    text=None)
+    # If the user is trying to buy more plants than MAX_PLANTS
     if number_of_plants > MAX_PLANTS:
         inputs_invalid = True # Set inputs invalid to true
-        lbl_number_of_trees.config(fg = "red",
-            text=f"We can't sell you {number_of_plants} plants! Maximum 3000.")
+        lbl_number_of_plants.config(fg = "red",
+            text=f"We can't sell you {number_of_plants} plants! Maximum {MAX_PLANTS}.")
 
     # If none of the inputs are invalid:
     if not inputs_invalid:
-        lbl_number_of_trees.config(fg = "white",
-            text=f"You're buying {number_of_plants} plants.")
         # Calculate the user's quote
         cost = calculate_quote(number_of_plants, address)
         # Update the cost label
         lbl_quote.config(text=f"${cost}")
+        # Update the number of plants label
+        lbl_number_of_plants.config(fg = "white",
+        text=f"Buying {number_of_plants} plants.")
         # Allow the user to save a receipt with this valid information
         btn_receipt.config(text="Save a receipt!",
             command=lambda:
-            save_receipt(area_string, density_string, number_of_plants, address, cost),
+            save_receipt(area_string, distance_string, number_of_plants, address, cost),
             relief=tk.RAISED)
     # If one or more input is invalid:
     else:
@@ -293,21 +308,21 @@ ent_area = tk.Entry(master=frm_fields,
     font=("Cascadia Code Light", 10))
 ent_area.grid(sticky="w")
 
-# Label on top of the planting density field
-lbl_density = tk.Label(master=frm_fields,
-    text="""Enter the density of plants you want per m^2.""",
+# Label on top of the planting distance field
+lbl_distance = tk.Label(master=frm_fields,
+    text="""Enter the distance you will leave between plants in m^2""",
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
     wraplengt=450,
     height=2)
-lbl_density.grid(sticky="sw")
+lbl_distance.grid(sticky="sw")
 
-# The planting density field
-ent_density = tk.Entry(master=frm_fields,
+# The planting distance field
+ent_distance = tk.Entry(master=frm_fields,
     width=15,
     font=("Cascadia Code Light", 10))
-ent_density.grid(sticky="w")
+ent_distance.grid(sticky="w")
 
 # Label on top of the address field
 lbl_address = tk.Label(master=frm_fields,
@@ -369,12 +384,12 @@ btn_receipt = tk.Button(master=frm_calculate,
     width=20)
 btn_receipt.pack()
 
-lbl_number_of_trees = tk.Label(master=frm_calculate,
+lbl_number_of_plants = tk.Label(master=frm_calculate,
     text="",
     bg="#222",
     fg="white",
     font=("Cascadia Code Light", 10))
 
-lbl_number_of_trees.pack()
+lbl_number_of_plants.pack()
 # Loop the tkinter code
 rootwindow.mainloop()
