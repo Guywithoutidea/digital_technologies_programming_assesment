@@ -44,9 +44,14 @@ MAX_PLANTS = 10000
 MAX_AREA = 500000
 # Minimum planting distance between plants
 MIN_DISTANCE = 1
+# Cost of equipment
+EQUIPMENT_COST = 200
+# Cost of transport for areas outside Wanaka
+TRANSPORT_COST = 100
 
 # Initialise user_plants list
 user_plants = []
+
 
 def plant_species_handler(plant_species, value):
     '''
@@ -58,6 +63,7 @@ def plant_species_handler(plant_species, value):
     # If the user has selected the checkbox
     if value.get() == 1:
         user_plants.append(plant_species) # Add that plant to the list user_plants
+
 
 def get_quote():
     '''
@@ -102,7 +108,7 @@ def get_quote():
 
     # Planting distance validation code. If it all checks out, distance_float is a valid float.
     # First, we reset the lbl_distance to it's normal value.
-    lbl_distance.config(fg="white", text="Enter the distance you will leave between plants in m^2")
+    lbl_distance.config(fg="white", text="Enter the distance left between plants in meters")
     try:
         # Try to convert it to a floating point number
         distance_float = float(distance_string)
@@ -111,13 +117,13 @@ def get_quote():
             inputs_invalid = True # Set inputs invalid to true
             # Tell the user their mistake
             lbl_distance.config(fg="red",
-                text=f"""Enter the distance you will leave between plants in m^2
+                text=f"""Enter the distance left between plants in meters
  Must have at least {MIN_DISTANCE}m between plants.""")
     # If the area cannot be converted into a float (throws one of the below errors)
     except (TypeError, ValueError):
         inputs_invalid = True # Set inputs invalid to true
         # Tell the user their mistake
-        lbl_distance.config(fg="red", text="""Enter the distance you will leave between plants in m^2
+        lbl_distance.config(fg="red", text="""Enter the distance left between plants in meters
  Please enter a valid number, like 5, or 2""")
 
     # Address validation code.
@@ -172,16 +178,18 @@ def get_quote():
         command=None,
         relief=tk.FLAT)
 
+
 def calculate_quote(number_of_plants, address):
     '''
     Calculate the cost using our cost formula with the user's details
     '''
-    cost = (number_of_plants * 6.5) + 200
+    cost = (number_of_plants * 6.5) + EQUIPMENT_COST
     # If the user is not in Wanaka:
     if not "wanaka" in address.lower():
-        cost += 100 # add the 100 delivery fee
+        cost += TRANSPORT_COST # add the delivery fee
 
     return cost
+
 
 def save_receipt(area, density, number_of_plants, address, cost):
     '''
@@ -310,7 +318,7 @@ ent_area.grid(sticky="w")
 
 # Label on top of the planting distance field
 lbl_distance = tk.Label(master=frm_fields,
-    text="""Enter the distance you will leave between plants in m^2""",
+    text="""Enter the distance left between plants in meters""",
     font=("Cascadia Code Light", 10),
     fg="white",
     bg="#222",
