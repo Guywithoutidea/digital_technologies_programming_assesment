@@ -35,11 +35,15 @@ from datetime import date
 
 # Initialise the list of plants in stock
 plants_in_stock = [
-    "flax", "lancewood", "kanuka", "koromiko",
-    "mikimiki", "kowhai", "cabbage tree", "mountain beech"]
-
-# Initialise user_plants list
-user_plants = []
+    "flax",
+    "lancewood",
+    "kanuka",
+    "koromiko",
+    "mikimiki",
+    "kowhai",
+    "cabbage tree",
+    "mountain beech",
+]
 
 # Maximum number of plants we will sell to the user
 MAX_PLANTS = 10000
@@ -53,6 +57,9 @@ EQUIPMENT_COST = 200
 TRANSPORT_COST = 100
 # Cost of one individual native plant
 PLANT_COST = 6.5
+
+# Initialise user_plants list
+user_plants = []
 
 
 def plant_species_handler(plant_species, value):
@@ -69,50 +76,64 @@ def plant_species_handler(plant_species, value):
 
 def get_quote():
     """
-    Command called when user presses the calculate button. We check whether the inputs
-    are valid, and if so call calculate_quote() and get the user their quote.
+    Command called when user presses the calculate button. Most of it is taking care of
+    input validation, the last if - else statement calls calculate_quote() if all the inputs
+    pass the validation logic.
     """
     # Get our user's values from the entry boxes
     area_string = ent_area.get()
     distance_string = ent_distance.get()
     address = ent_address.get()
 
-    # If the inputs are valid (validity_check returns true)
-    if validity_check(area_string, distance_string, address):
+    # If none of the inputs are invalid:
+    if validate_inputs(area_string, distance_string, address):
+        # Calculate the number of plants the user is buying.
         number_of_plants = int(float(area_string) / float(distance_string))
-        # Calculate the user's quote
-        cost = calculate_quote(number_of_plants, address)
-        # Update the cost label
-        lbl_quote.config(text=f"${cost}")
-        # Update the number of plants label
+        # Reset he number of plants label
+        lbl_number_of_plants.config(fg="white", text=None)
+        # If the user is trying to buy more plants than MAX_PLANTS
+        if number_of_plants <= MAX_PLANTS:
+            # Calculate the user's quote
+            cost = calculate_quote(number_of_plants, address)
+            # Update the cost label
+            lbl_quote.config(text=f"${cost}")
+            # Update the number of plants label
+            lbl_number_of_plants.config(
+                fg="white", text=f"Buying {number_of_plants} plants."
+            )
+            # Allow the user to save a receipt with this valid information
+            btn_receipt.config(
+                text="Save a receipt!",
+                command=lambda: save_receipt(
+                    area_string, distance_string, number_of_plants, address, cost
+                ),
+                relief=tk.RAISED,
+            )
+            # Exit the function
+            return
+        # If the number of plants > MAX_PLANTS
         lbl_number_of_plants.config(
-            fg="white", text=f"Buying {number_of_plants} plants."
+            fg="red",
+            text=f"We can't sell you {number_of_plants} plants! Maximum {MAX_PLANTS}.",
         )
-        # Allow the user to save a receipt with this valid information
-        btn_receipt.config(
-            text="Save a receipt!",
-            command=lambda: save_receipt(
-                area_string, distance_string, number_of_plants, address, cost
-            ),
-            relief=tk.RAISED,
-        )
-    # If the inputs are not valid:
-    else:
-        # Prevent the user from saving a receipt with this information
-        btn_receipt.config(text="Cannot save a receipt.", command=None, relief=tk.FLAT)
+
+    # This code runs if validate inputs fails, or the number of plants is > MAX_PLANTS.
+    # Prevent the user from saving a receipt with this information.
+    btn_receipt.config(text="Cannot save a receipt.", command=None, relief=tk.FLAT)
 
 
-def validity_check(area_string, distance_string, address):
+def validate_inputs(area, distance, address):
     """
-    Validate the user's inputs: area_string, distance_string, and address
+    Validate the user's inputs- area, distance, and address.
     """
-    inputs_invalid = False
+    inputs_invalid = False  # Keeps track of whether there are any invalid inputs
+
     # Area validation code. If it all checks out, area_float is valid and a float.
     # First, we reset the lbl_area to it's normal value.
     lbl_area.config(fg="white", text="Enter the area you wish to plant in m^2.")
     try:
         # Try to convert it to a floating point number
-        area_float = float(area_string)
+        area_float = float(area)
         # If that suceeds, check if the float is greater than zero.
         if area_float <= 0:
             inputs_invalid = True  # Set inputs invalid to true
@@ -147,7 +168,7 @@ def validity_check(area_string, distance_string, address):
     )
     try:
         # Try to convert it to a floating point number
-        distance_float = float(distance_string)
+        distance_float = float(distance)
         # If that suceeds, check if the float is less than the minimum distance.
         if distance_float < MIN_DISTANCE:
             inputs_invalid = True  # Set inputs invalid to true
@@ -189,28 +210,18 @@ def validity_check(area_string, distance_string, address):
             fg="red", text="Please select the species\nyou wish to purchase."
         )
 
-    # If the inputs are invalid, return False (the inputs are invalid)
+    # Return false if any of the inputs are invalid/set inputs_invalid to true
     if inputs_invalid:
         return False
-    # Otherwise, return true
-    else:
-        return True
+
+    # If none of the inputs are invalid, return true.
+    return True
 
 
 def calculate_quote(number_of_plants, address):
     """
     Calculate the cost using our cost formula with the user's details
     """
-
-    # Reset the number of plants label
-    lbl_number_of_plants.config(fg="white", text=None)
-    # If the user is trying to buy more plants than MAX_PLANTS
-    if number_of_plants > MAX_PLANTS:
-        inputs_invalid = True  # Set inputs invalid to true
-        lbl_number_of_plants.config(
-            fg="red",
-            text=f"We can't sell you {number_of_plants} plants! Maximum {MAX_PLANTS}.",
-        )
     cost = (number_of_plants * PLANT_COST) + EQUIPMENT_COST
     # If the user is not in Wanaka:
     if not "wanaka" in address.lower():
@@ -443,5 +454,6 @@ lbl_number_of_plants = tk.Label(
     font=("Cascadia Code Light", 10),
 )
 lbl_number_of_plants.pack()
+
 # Loop the tkinter code
 rootwindow.mainloop()
