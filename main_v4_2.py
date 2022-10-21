@@ -48,6 +48,8 @@ MIN_DISTANCE = 1
 EQUIPMENT_COST = 200
 # Cost of transport for areas outside Wanaka
 TRANSPORT_COST = 100
+# Cost of one individual native plant
+PLANT_COST = 6.5
 
 # Initialise user_plants list
 user_plants = []
@@ -183,7 +185,7 @@ def calculate_quote(number_of_plants, address):
     '''
     Calculate the cost using our cost formula with the user's details
     '''
-    cost = (number_of_plants * 6.5) + EQUIPMENT_COST
+    cost = (number_of_plants * PLANT_COST) + EQUIPMENT_COST
     # If the user is not in Wanaka:
     if not "wanaka" in address.lower():
         cost += TRANSPORT_COST # add the delivery fee
